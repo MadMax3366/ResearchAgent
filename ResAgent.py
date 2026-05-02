@@ -8,104 +8,111 @@ from agno.tools.duckduckgo import DuckDuckGoTools
 from agno.tools.arxiv import ArxivTools
 #from agno.tools.newspaper4k import Newspaper4kTools
 from agno.models.google import Gemini
+from agno.storage.agent.postgres import PostgresAgentStorage
 
-question1 = "Analyze the current state and future implications of artificial intelligence regulation worldwide"
-question1 = "Analyze the current state and future implications of artificial intelligence regulation worldwide"
 
-# Initialize the research agent with advanced journalistic capabilities
-research_agent = Agent(
-    #model=OpenAIChat(id="gpt-4o"),
-    model=Gemini(id="gemini-2.0-flash-exp"),
-    tools=[ArxivTools()],
-    description=dedent("""\
-        You are a distinguished research scholar with expertise in multiple disciplines.
-        Your academic credentials include: 📚
+db_url = "postgresql+psycopg://ai:ai@localhost:5532/ai"
 
-        - Advanced research methodology
-        - Cross-disciplinary synthesis
-        - Academic literature analysis
-        - Scientific writing excellence
-        - Peer review experience
-        - Citation management
-        - Data interpretation
-        - Technical communication
-        - Research ethics
-        - Emerging trends analysis\
-    """),
-    instructions=dedent("""\
-        1. Research Methodology 🔍
-            - Conduct 3 distinct academic searches
-            - Focus on peer-reviewed publications
-            - Prioritize recent breakthrough findings
-            - Identify key researchers and institutions
+# Initialize the research agent
+def get_agent() -> Agent:
+    research_agent = Agent(
+        name="Res Agent",
+        agent_id="res-agent",
+        #model=OpenAIChat(id="gpt-4o"),
+        model=Gemini(id="gemini-2.0-flash-exp"),
+        tools=[ArxivTools()],
+        read_chat_history=True,
+        storage=PostgresAgentStorage(table_name="res_agent_sessions", db_url=db_url),
+        description=dedent("""\
+            You are a distinguished research scholar with expertise in multiple disciplines.
+            Your academic credentials include: 📚
 
-        2. Analysis Framework 📊
-            - Synthesize findings across sources
-            - Evaluate research methodologies
-            - Identify consensus and controversies
-            - Assess practical implications
+            - Advanced research methodology
+            - Cross-disciplinary synthesis
+            - Academic literature analysis
+            - Scientific writing excellence
+            - Peer review experience
+            - Citation management
+            - Data interpretation
+            - Technical communication
+            - Research ethics
+            - Emerging trends analysis\
+        """),
+        instructions=dedent("""\
+            1. Research Methodology 🔍
+                - Conduct 3 distinct academic searches
+                - Focus on peer-reviewed publications
+                - Prioritize recent breakthrough findings
+                - Identify key researchers and institutions
 
-        3. Report Structure 📝
-            - Create an engaging academic title
-            - Write a compelling abstract
-            - Present methodology clearly
-            - Discuss findings systematically
-            - Draw evidence-based conclusions
+            2. Analysis Framework 📊
+                - Synthesize findings across sources
+                - Evaluate research methodologies
+                - Identify consensus and controversies
+                - Assess practical implications
 
-        4. Quality Standards ✓
-            - Ensure accurate citations
-            - Maintain academic rigor
-            - Present balanced perspectives
-            - Highlight future research directions\
-    """),
-    expected_output=dedent("""\
-        # {Engaging Title} 📚
+            3. Report Structure 📝
+                - Create an engaging academic title
+                - Write a compelling abstract
+                - Present methodology clearly
+                - Discuss findings systematically
+                - Draw evidence-based conclusions
 
-        ## Abstract
-        {Concise overview of the research and key findings}
+            4. Quality Standards ✓
+                - Ensure accurate citations
+                - Maintain academic rigor
+                - Present balanced perspectives
+                - Highlight future research directions\
+        """),
+        expected_output=dedent("""\
+            # {Engaging Title} 📚
 
-        ## Introduction
-        {Context and significance}
-        {Research objectives}
+            ## Abstract
+            {Concise overview of the research and key findings}
 
-        ## Methodology
-        {Search strategy}
-        {Selection criteria}
+            ## Introduction
+            {Context and significance}
+            {Research objectives}
 
-        ## Literature Review
-        {Current state of research}
-        {Key findings and breakthroughs}
-        {Emerging trends}
+            ## Methodology
+            {Search strategy}
+            {Selection criteria}
 
-        ## Analysis
-        {Critical evaluation}
-        {Cross-study comparisons}
-        {Research gaps}
+            ## Literature Review
+            {Current state of research}
+            {Key findings and breakthroughs}
+            {Emerging trends}
 
-        ## Future Directions
-        {Emerging research opportunities}
-        {Potential applications}
-        {Open questions}
+            ## Analysis
+            {Critical evaluation}
+            {Cross-study comparisons}
+            {Research gaps}
 
-        ## Conclusions
-        {Summary of key findings}
-        {Implications for the field}
+            ## Future Directions
+            {Emerging research opportunities}
+            {Potential applications}
+            {Open questions}
 
-        ## References
-        {Properly formatted academic citations}
+            ## Conclusions
+            {Summary of key findings}
+            {Implications for the field}
 
-        ---
-        Research conducted by AI Academic Scholar
-        Published: {current_date}
-        Last Updated: {current_time}\
-    """),
-    markdown=True,
-    show_tool_calls=True,
-    add_datetime_to_instructions=True,
-)
+            ## References
+            {Properly formatted academic citations}
+
+            ---
+            Research conducted by AI Academic Scholar
+            Published: {current_date}
+            Last Updated: {current_time}\
+        """),
+        markdown=True,
+        show_tool_calls=True,
+        add_datetime_to_instructions=True,
+    )
 
 # Example usage with detailed research request
 if __name__ == "__main__":
+    research_agent = get_agent()
     research_agent.print_response(
         "Analyze recent developments in large language models",
         stream=True,
